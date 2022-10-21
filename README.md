@@ -1,4 +1,4 @@
-#__Git Find Repository__
+# Git Find Repository
 ---
 ## :computer: About 
 
