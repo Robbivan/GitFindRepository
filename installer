@@ -1,0 +1,23 @@
+#!/bin/bash
+
+your_directory=`pwd`;
+if [[ -z "`echo $PATH | grep /usr/local/bin`" ]];#Checking the presence of a directory
+then echo "You need to add /usr/local/bin in PATH";exit 0;
+else	sudo ln -s "$your_directory/gitfdir" /usr/local/bin #creating a soft link to the utility	
+	sudo chown -Rh $USER /usr/local/bin/gitfdir #setting your name to the owner of the link
+	echo "Installation completed successfully [100%]"
+	echo "";
+fi
+
+
+#The process of removing or closing the installer
+while true; do
+    read -p "Do you wish to remove this installer? [Yy/Nn]: " yn
+    case $yn in
+        [Yy]* ) rm installer; break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer [Yy]=yes or [Nn]=no ";;
+    esac
+done
+
+

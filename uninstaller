@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#removing the main file and this file
+rm gitfdir
+rm uninstaller;
+
+path="/usr/local/bin/gitfdir"
+path_installer="./installer"
+
+#removing the installer if it has not already been removed
+if [[ -e $path_installer ]]
+then rm "./installer"
+fi
+if [[ -L "$path"  ]];#Checking the presence of a link gitfdir
+then	
+        cd /usr/local/bin
+	rm gitfdir #rm symlink
+fi
+
+echo "UNINSTALL WAS COMPLETED SUCCESSFULLY: 100%"

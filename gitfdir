@@ -1,0 +1,272 @@
+#!/bin/bash
+
+#gitfdir utulity
+
+############################################
+#KEYS
+############################################
+
+if [ -z "$*" ]
+then 
+	echo "-h  help";
+	echo "-v  version";
+	exit 0;
+fi
+ 
+#keys
+while getopts -- ":hv" opt
+do case $opt in
+	h) 	echo "---Help--- "
+		echo ""
+		echo "Usage: gitfdir [name_remote_repository] [[path_directory]] "
+		echo "				 [[path_directory]] - means optional,"
+		echo "				  by default the current path directory"
+		echo ""
+		echo "Utility to search for a local repository via a remote repository"
+		echo "from GitHub/GitLab/GitBucket (Unix systems)"
+		echo ""
+		echo "-h  help"
+		echo "-v  version"
+		echo ""
+		echo ""
+		echo "EXAMPLE:"
+		echo ""
+		echo "gitfdir hello_g ~"
+		echo "This means searching the path [~] remote repository [hello_g]"
+		echo ""
+		echo "If there is such a name, then it will be displayed in this form: "
+		echo "[path_local_directory] | name_local_repository = [your_name_local_repository]"
+		echo ""
+		echo "If an exact match is not found, but similar ones are found, then the output will be: "
+		echo "[number_matches] [path_local_directory] | name_local_repository = [your_name_local_repository]"
+		echo "NOTE: number_matches sorted in ascending order"
+		exit 0;;
+	v)echo "version 1.0.7"
+		exit 0;;	
+	*)      echo "Exist only!"
+		echo ""	
+	        echo "-h  help"
+                echo "-v  version"
+		exit 0;;
+esac
+done
+
+############################################
+#BEGINING OF THE UTILITY
+############################################
+
+arg_for_search="$1" #search argument
+search_path="$2"
+MY_PATH="`pwd`"
+
+len=${#arg_for_search};
+check_close_first_second_symbol=${arg_for_search:0:1} # search by the first 2 characters
+if (( len > 1 )) 
+	then check_close_first_second_symbol=${arg_for_search:0:2}
+fi
+
+#accounting for separators
+separators="false"
+if [ ! -z $( echo $arg_for_search | grep "-" ) ]
+then separators="-"
+	res=`tr -dc '-' <<< "$arg_for_search" | wc -c`
+fi
+if [ ! -z $( echo $arg_for_search | grep "_" ) ]
+then separators="_"
+	res=`tr -dc '_' <<< "$arg_for_search" | wc -c`
+fi
+
+touch scores.txt
+touch scores_res.txt
+trap 'rm scores.txt; rm scores_res.txt' EXIT #ALL SIGNALS + exit 
+check_first_symbol="false"
+check_first_symbol_dop="false"
+separators_check="false"
+get_str="."
+
+if [ -z "$search_path" ]; then search_path=.;fi;
+#standart input directory is .
+
+#function for writing to a file
+function writefile {
+        echo "`echo "$1" | sed  's%/.git%%g'` | name_local_repository = `git remote -v | sed "s%.*/%%g" | grep -i "$2" | head -n 1 | sed "s%(.*)%%g"`" >> "$MY_PATH/scores.txt"
+        #echo ""$line" | sed  's%/.git%%g'" #extra show checkline	
+}
+
+#function for writing to a file with key -E (grep)
+function writefilewithe {
+        echo "`echo "$1" | sed  's%/.git%%g'` | name_local_repository = `git remote -v | sed "s%.*/%%g" | grep -iE "^$2" | head -n 1 | sed "s%(.*)%%g"`" >> "$MY_PATH/scores.txt" 
+	#echo ""$line" | sed  's%/.git%%g'" #extra show checkline
+}
+
+
+#function for the style of names Camel Case
+#The function supports 2 types of pure Camel Case and with a separators (Snake Case)
+function camelcase {
+
+check_first_symbol_dop="false"
+if [ ! -z  `echo $time_arg_for_search | grep -E "^[a-z0-9]+"` ] #for nameLikeThis or name-likeThis
+then
+        str_time=`echo $time_arg_for_search |sed -E "s%^([a-z;0-9]+).*%\1%"`
+        time_arg_for_search=`echo $time_arg_for_search | sed -E "s%^[a-z0-9]+%%"` 
+        if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -iE ^$str_time)" ]
+        then
+		writefilewithe $line $str_time
+                check_first_symbol_dop="tr"
+        fi
+fi
+
+if [ ! -z `echo $time_arg_for_search | grep -E "^[A-Z]+[a-z0-9]+"` ] #for NameLikeThis or Name-likeThis
+then
+        str_time=`echo $time_arg_for_search | sed -E "s%^([A-Z]+[a-z;0-9]+).*%\1%"`
+        time_arg_for_search=`echo $time_arg_for_search | sed -E "s%^[A-Z]+[a-z0-9]+%%"`
+        if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -i $str_time)" ] #processing the 1 parameter
+        then
+		writefile $line $str_time
+                check_first_symbol_dop="tr"
+        fi
+        while [ ! -z $time_arg_for_search ] #processing n-1 parameters
+        do
+                str_time=`echo $time_arg_for_search | sed -E "s%^([A-Z]+[a-z;0-9]+).*%\1%"`
+                time_arg_for_search=`echo $time_arg_for_search | sed -E "s%^[A-Z]+[a-z0-9]+%%"`
+                if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -i $str_time)" ]
+                then
+			writefile $line $str_time
+                fi
+        done
+fi
+if [[ $check_first_symbol_dop == "false" ]] #if you didn't find a substring earlier, then search by the first 2 characters
+then
+        if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -E ^$check_close_first_second_symbol)" ]
+        then
+		writefilewithe $line $check_close_first_second_symbol
+                check_first_symbol="false"
+                continue;
+        fi;
+fi
+
+}
+
+
+find "$search_path" -type d -name ".git" 2>/dev/null | while read line; #basic search
+do cd "$line"; 
+	if [ ! -z  "$(git remote -v | grep "$arg_for_search\.git")" ];
+	then 
+		name_local_repository=`git remote -v | sed "s%.*/%%g" | grep "$arg_for_search" | head -n 1 | sed "s%(.*)%%g" | sed "s%.git %%g"`
+		if [ "$name_local_repository" == "$arg_for_search" ]
+		then
+			echo "`echo $line | sed  's%/.git%%g'` | name_local_repository = `git remote -v | sed "s%.*/%%g" | grep "$arg_for_search" | head -n 1 | sed "s%(.*)%%g"` " #replaced / by % for the convenience of screening
+			exit 20; #exit works like a break in combination of find, pipe and loop (bash feature)
+		fi	
+	fi;
+	if [[ $separators != "false" ]] #if there are separators
+	then
+		time_arg_for_search=`echo $arg_for_search | cut -f 1 -d $separators`;
+
+		#divide it into 3 options for 2 separators -_
+                if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -i $time_arg_for_search$separators)" ] 
+                then
+			 check_first_symbol="true"
+			 separators_check="true"
+			 writefile $line $time_arg_for_search$separators
+
+                fi;
+		if [ $separators_check != "true" ]
+                then
+                         camelcase $time_arg_for_search $line
+			 separators_check="false"
+                fi
+		for (( i=2;i<=$res;i++ )) #Many separators
+		do
+			time_arg_for_search=`echo $arg_for_search | cut -f $i -d $separators`
+			dop_arg="$separators$time_arg_for_search$separators"
+			if [ ! -z "$(git remote -v | sed "s%.*/%%g" | sed -ne "/$dop_arg/p")" ]
+        		then
+				echo "`echo "$line" | sed  's%/.git%%g'` | name_local_repository = `git remote -v | sed "s%.*/%%g" | sed -ne "/$dop_arg/p" | head -n 1 | sed "s%(.*)%%g"`" >> "$MY_PATH/scores.txt"
+				separators_check="true"
+        		fi;
+			if [ $separators_check != "true" ] #for NameLike-this
+                	then
+                         	camelcase $time_arg_for_search $line
+                         	separators_check="false"
+                	fi
+		done
+		let "time_res=$res+1"
+		time_arg_for_search=`echo $arg_for_search | cut -f $time_res -d $separators`
+		dop_arg="$separators$time_arg_for_search"
+		if [ ! -z "$(git remote -v | sed "s%.*/%%g" | sed -ne "/$dop_arg/p")" ]
+                then
+			echo "`echo "$line" | sed  's%/.git%%g'` | name_local_repository = `git remote -v | sed "s%.*/%%g" | sed -ne "/$dop_arg/p" | head -n 1 | sed "s%(.*)%%g"`" >> "$MY_PATH/scores.txt"
+			#echo "$line" | sed  's%/.git%%g'
+			separators_check="true"
+                fi;
+		if [ $separators_check != "true" ]
+		then
+                         camelcase $time_arg_for_search $line
+			 separators_check="false"
+                fi
+	fi
+	if [[ $check_first_symbol == "false" && $separators == "false" ]] #start of Camel Case
+	then
+		if [[ $len > 1 ]]
+		then
+
+			time_arg_for_search=$arg_for_search;
+			camelcase $time_arg_for_search $line
+
+		else 
+			if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -E ^$check_close_first_second_symbol)" ]
+                	then
+				writefilewithe $line $check_close_first_second_symbol
+				check_first_symbol="false"
+                       		continue
+        		fi
+		fi
+	fi
+cd - >/dev/null;
+done;
+
+if [ $? == 20 ]	
+then
+    # this is really exit
+    exit 0;
+fi
+
+cd "$MY_PATH"
+if [ -s "scores.txt" ]
+then
+	echo "We didn't find EXACTLY SUCH a repository, BUT we got some"
+	echo "Matches:"
+	cat scores.txt | while read line
+	do
+		number=`cat scores.txt | grep "$line" | wc -l`
+		if (( number  > 1 ))
+        	then
+                	if [[ -z `cat scores_res.txt | grep "$line"` ]]
+                	then
+                        	echo "$number $line" >> "$MY_PATH/scores_res.txt"
+                	fi
+        	else
+                	echo "$number $line" >> scores_res.txt
+        	fi
+		
+	done
+	sort -nr scores_res.txt #| while read line
+else
+	echo "SORRY";
+	echo "There is no such and similar [name_repository = $arg_for_search] was found in [[directory = $search_path]]";
+	echo "Check again name_repository and directory!"
+	echo"";
+	echo "If you need more information, enter for help";
+	echo "gitfdir -h";
+	echo "";
+fi	
+
+
+
+
+
+	
+
+
+
