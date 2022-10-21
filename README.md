@@ -52,7 +52,7 @@ ___
 
 ### License
 
-Copyright © 2022, [Ivan Vasilyev](https://github.com/robbivan).
+Copyright © 2022, [Ivan Vasilyev](https://github.com/robbivan).  
 Released under the [MIT License](LICENSE).
 
 
