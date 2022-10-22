@@ -13,6 +13,8 @@ Use the utility name `gitfdir`
 
 The utility has the ability to issue recommendations for similar names of local repositories by the name of the remote repository
 
+Both Camel Case, Snake Case and their sharing are supported
+
 ![](https://github.com/robbivan/dirt/blob/main/image.png)
 
 ___
