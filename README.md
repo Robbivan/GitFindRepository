@@ -40,6 +40,7 @@ ___
 ```
 ___
 ## :broken_heart: Uninstall
+:sweat_drops: In the folder where the utility is installed
 ```bash
   ./uninstaller
 ```
