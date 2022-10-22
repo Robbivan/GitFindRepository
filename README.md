@@ -20,28 +20,28 @@ ___
 :hammer: An easy way
 ```bash
   # Clone a repository
-  $ git clone https://github.com/robbivan/GitFindRepository
-  $ cd GitFindRepository
-  
+  git clone https://github.com/robbivan/GitFindRepository
+  cd GitFindRepository
+
   #installation via the installer
-  $ ./installer
+  ./installer
 
 ```
 :hand: Manually
 
 ```bash
   # Clone a repository
-  $ git clone https://github.com/robbivan/GitFindRepository
+  git clone https://github.com/robbivan/GitFindRepository
 
   #creating a soft link to the utility and change owner
-  $ sudo ln -s "`pwd`/gitfdir" /usr/local/bin
-  $ sudo chown -Rh $USER /usr/local/bin/gitfdir
+  sudo ln -s "`pwd`/gitfdir" /usr/local/bin
+  sudo chown -Rh $USER /usr/local/bin/gitfdir
 
 ```
 ___
 ## :broken_heart: Uninstall
 ```bash
-  $ ./uninstaller
+  ./uninstaller
 ```
 ___
 ### Author
