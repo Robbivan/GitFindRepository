@@ -21,7 +21,8 @@ ___
 ```bash
   # Clone a repository
   $ git clone https://github.com/robbivan/GitFindRepository
-
+  $ cd GitFindRepository
+  
   #installation via the installer
   $ ./installer
 
