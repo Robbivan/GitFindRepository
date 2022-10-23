@@ -4,8 +4,7 @@
 
 Find the local repository via the name of the remote repository git 
 
-*Shell utility*
-*For MacOS and Linux*
+*Shell (Bash) utility for MacOS and Linux*
 
 ___
 ## :exclamation: More Info
