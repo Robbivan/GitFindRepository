@@ -105,33 +105,33 @@ function writefilewithe {
 function camelcase {
 
 check_first_symbol_dop="false"
-if [ ! -z  `echo $time_arg_for_search | grep -E "^[a-z0-9]+"` ] #for nameLikeThis or name-likeThis
+if [ ! -z  `echo "$time_arg_for_search" | grep -E "^[a-z0-9]+"` ] #for nameLikeThis or name-likeThis
 then
-        str_time=`echo $time_arg_for_search |sed -E "s%^([a-z;0-9]+).*%\1%"`
-        time_arg_for_search=`echo $time_arg_for_search | sed -E "s%^[a-z0-9]+%%"` 
+        str_time=`echo "$time_arg_for_search" |sed -E "s%^([a-z;0-9]+).*%\1%"`
+        time_arg_for_search=`echo "$time_arg_for_search" | sed -E "s%^[a-z0-9]+%%"` 
         if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -iE ^$str_time)" ]
         then
-		writefilewithe $line $str_time
+		writefilewithe "$line" "$str_time"
                 check_first_symbol_dop="tr"
         fi
 fi
 
-if [ ! -z `echo $time_arg_for_search | grep -E "^[A-Z]+[a-z0-9]+"` ] #for NameLikeThis or Name-likeThis
+if [ ! -z `echo "$time_arg_for_search" | grep -E "^[A-Z]+[a-z0-9]+"` ] #for NameLikeThis or Name-likeThis
 then
-        str_time=`echo $time_arg_for_search | sed -E "s%^([A-Z]+[a-z;0-9]+).*%\1%"`
-        time_arg_for_search=`echo $time_arg_for_search | sed -E "s%^[A-Z]+[a-z0-9]+%%"`
-        if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -i $str_time)" ] #processing the 1 parameter
+        str_time=`echo "$time_arg_for_search" | sed -E "s%^([A-Z]+[a-z;0-9]+).*%\1%"`
+        time_arg_for_search=`echo "$time_arg_for_search" | sed -E "s%^[A-Z]+[a-z0-9]+%%"`
+        if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -i "$str_time")" ] #processing the 1 parameter
         then
-		writefile $line $str_time
+		writefile "$line" "$str_time"
                 check_first_symbol_dop="tr"
         fi
-        while [ ! -z $time_arg_for_search ] #processing n-1 parameters
+        while [ ! -z "$time_arg_for_search" ] #processing n-1 parameters
         do
-                str_time=`echo $time_arg_for_search | sed -E "s%^([A-Z]+[a-z;0-9]+).*%\1%"`
-                time_arg_for_search=`echo $time_arg_for_search | sed -E "s%^[A-Z]+[a-z0-9]+%%"`
-                if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -i $str_time)" ]
+                str_time=`echo "$time_arg_for_search" | sed -E "s%^([A-Z]+[a-z;0-9]+).*%\1%"`
+                time_arg_for_search=`echo "$time_arg_for_search" | sed -E "s%^[A-Z]+[a-z0-9]+%%"`
+                if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -i "$str_time")" ]
                 then
-			writefile $line $str_time
+			writefile "$line" "$str_time"
                 fi
         done
 fi
@@ -139,7 +139,7 @@ if [[ $check_first_symbol_dop == "false" ]] #if you didn't find a substring earl
 then
         if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -E ^$check_close_first_second_symbol)" ]
         then
-		writefilewithe $line $check_close_first_second_symbol
+		writefilewithe "$line" "$check_close_first_second_symbol"
                 check_first_symbol="false"
                 continue;
         fi;
@@ -149,36 +149,36 @@ fi
 
 
 find "$search_path" -type d -name ".git" 2>/dev/null | while read line; #basic search
-do cd "$line"; 
+do cd "$line";
 	if [ ! -z  "$(git remote -v | grep "$arg_for_search\.git")" ];
 	then 
 		name_local_repository=`git remote -v | sed "s%.*/%%g" | grep "$arg_for_search" | head -n 1 | sed "s%(.*)%%g" | sed "s%.git %%g"`
 		if [ "$name_local_repository" == "$arg_for_search" ]
 		then
-			echo "`echo $line | sed  's%/.git%%g'` | name_local_repository = `git remote -v | sed "s%.*/%%g" | grep "$arg_for_search" | head -n 1 | sed "s%(.*)%%g"` " #replaced / by % for the convenience of screening
+			echo "`echo "$line" | sed  's%/.git%%g'` | name_local_repository = `git remote -v | sed "s%.*/%%g" | grep "$arg_for_search" | head -n 1 | sed "s%(.*)%%g"` " #replaced / by % for the convenience of screening
 			exit 20; #exit works like a break in combination of find, pipe and loop (bash feature)
 		fi	
 	fi;
 	if [[ $separators != "false" ]] #if there are separators
 	then
-		time_arg_for_search=`echo $arg_for_search | cut -f 1 -d $separators`;
+		time_arg_for_search=`echo "$arg_for_search" | cut -f 1 -d $separators`;
 
 		#divide it into 3 options for 2 separators -_
                 if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -i $time_arg_for_search$separators)" ] 
                 then
 			 check_first_symbol="true"
 			 separators_check="true"
-			 writefile $line $time_arg_for_search$separators
+			 writefile "$line" "$time_arg_for_search$separators"
 
                 fi;
 		if [ $separators_check != "true" ]
                 then
-                         camelcase $time_arg_for_search $line
+                         camelcase "$time_arg_for_search" "$line"
 			 separators_check="false"
                 fi
 		for (( i=2;i<=$res;i++ )) #Many separators
 		do
-			time_arg_for_search=`echo $arg_for_search | cut -f $i -d $separators`
+			time_arg_for_search=`echo "$arg_for_search" | cut -f $i -d $separators`
 			dop_arg="$separators$time_arg_for_search$separators"
 			if [ ! -z "$(git remote -v | sed "s%.*/%%g" | sed -ne "/$dop_arg/p")" ]
         		then
@@ -187,12 +187,12 @@ do cd "$line";
         		fi;
 			if [ $separators_check != "true" ] #for NameLike-this
                 	then
-                         	camelcase $time_arg_for_search $line
+                         	camelcase "$time_arg_for_search" "$line"
                          	separators_check="false"
                 	fi
 		done
 		let "time_res=$res+1"
-		time_arg_for_search=`echo $arg_for_search | cut -f $time_res -d $separators`
+		time_arg_for_search=`echo "$arg_for_search" | cut -f $time_res -d $separators`
 		dop_arg="$separators$time_arg_for_search"
 		if [ ! -z "$(git remote -v | sed "s%.*/%%g" | sed -ne "/$dop_arg/p")" ]
                 then
@@ -202,7 +202,7 @@ do cd "$line";
                 fi;
 		if [ $separators_check != "true" ]
 		then
-                         camelcase $time_arg_for_search $line
+                         camelcase "$time_arg_for_search" "$line"
 			 separators_check="false"
                 fi
 	fi
@@ -211,13 +211,13 @@ do cd "$line";
 		if [[ $len > 1 ]]
 		then
 
-			time_arg_for_search=$arg_for_search;
-			camelcase $time_arg_for_search $line
+			time_arg_for_search="$arg_for_search";
+			camelcase "$time_arg_for_search" "$line"
 
 		else 
 			if [ ! -z "$(git remote -v | sed "s%.*/%%g" |  grep -E ^$check_close_first_second_symbol)" ]
                 	then
-				writefilewithe $line $check_close_first_second_symbol
+				writefilewithe "$line" "$check_close_first_second_symbol"
 				check_first_symbol="false"
                        		continue
         		fi
